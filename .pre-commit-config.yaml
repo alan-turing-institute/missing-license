@@ -37,3 +37,4 @@ repos:
         args: []
         additional_dependencies:
           - pytest
+          - PyGithub

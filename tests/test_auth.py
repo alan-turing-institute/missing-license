@@ -9,8 +9,10 @@ def test_authenticate_with_token(monkeypatch):
     monkeypatch.setenv("GH_TOKEN", "fake-token")
     monkeypatch.delenv("APP_ID", raising=False)
 
-    with patch.object(auth_module.github.Auth, "Token") as mock_token_cls, \
-         patch.object(auth_module, "Github") as mock_gh:
+    with (
+        patch.object(auth_module.github.Auth, "Token") as mock_token_cls,
+        patch.object(auth_module, "Github") as mock_gh,
+    ):
         auth_module.authenticate()
         mock_token_cls.assert_called_once_with("fake-token")
         mock_gh.assert_called_once_with(auth=mock_token_cls.return_value)

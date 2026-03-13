@@ -57,8 +57,13 @@ class TestHasExistingIssue:
 class TestProcessRepo:
     def _run(self, repo, dry_run=False, exempt_repos=None):
         return process_repo(
-            repo, ISSUE_TITLE, ISSUE_BODY, ISSUE_LABELS,
-            exempt_repos or set(), dry_run, BOT_LOGIN,
+            repo,
+            ISSUE_TITLE,
+            ISSUE_BODY,
+            ISSUE_LABELS,
+            exempt_repos or set(),
+            dry_run,
+            BOT_LOGIN,
         )
 
     def test_archived_repo_skipped(self):

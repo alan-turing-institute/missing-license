@@ -87,8 +87,13 @@ def main():
 
     for repo in org.get_repos(type="public"):
         status = process_repo(
-            repo, issue_title, issue_body, issue_labels,
-            exempt_repos, dry_run, bot_login,
+            repo,
+            issue_title,
+            issue_body,
+            issue_labels,
+            exempt_repos,
+            dry_run,
+            bot_login,
         )
         results[status].append(repo.name)
 
