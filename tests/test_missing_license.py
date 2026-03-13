@@ -2,6 +2,7 @@ import importlib.resources
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
 from github import GithubException
 
 from missing_license.missing_license import (
@@ -121,7 +122,8 @@ class TestMainOrgUserFallback:
         if org_side_effect is not None:
             gh.get_organization.side_effect = org_side_effect
         if user_obj is not None:
-            # get_user is called twice: once for bot login (no args), once for org fallback
+            # get_user is called twice: once for bot login (no args),
+            # once for org fallback
             gh.get_user.side_effect = lambda login=None: (
                 MagicMock(login="test-bot") if login is None else user_obj
             )
@@ -169,12 +171,12 @@ class TestMainOrgUserFallback:
         monkeypatch.setenv("DRY_RUN", "true")
         monkeypatch.delenv("ISSUE_BODY_PATH", raising=False)
 
-        with patch("missing_license.missing_license.authenticate", return_value=gh):
-            try:
-                main()
-                assert False, "Expected GithubException to propagate"
-            except GithubException as e:
-                assert e.status == 500
+        with (
+            patch("missing_license.missing_license.authenticate", return_value=gh),
+            pytest.raises(GithubException) as exc_info,
+        ):
+            main()
+        assert exc_info.value.status == 500
 
 
 class TestIssueBodyLoading:
