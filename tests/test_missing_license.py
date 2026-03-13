@@ -1,9 +1,13 @@
 import importlib.resources
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+from github import GithubException
 
 from missing_license.missing_license import (
     get_license,
     has_existing_issue,
+    main,
     process_repo,
 )
 from tests.conftest import make_issue, make_repo
@@ -108,6 +112,69 @@ class TestProcessRepo:
     def test_archived_takes_priority_over_exempt(self):
         repo = make_repo("my-repo", archived=True)
         assert self._run(repo, exempt_repos={"my-repo"}) == "archived"
+
+
+class TestMainOrgUserFallback:
+    def _make_gh(self, org_side_effect=None, user_obj=None):
+        gh = MagicMock()
+        gh.get_user.return_value.login = "test-bot"
+        if org_side_effect is not None:
+            gh.get_organization.side_effect = org_side_effect
+        if user_obj is not None:
+            # get_user is called twice: once for bot login (no args), once for org fallback
+            gh.get_user.side_effect = lambda login=None: (
+                MagicMock(login="test-bot") if login is None else user_obj
+            )
+        return gh
+
+    def test_org_account_used_when_found(self, monkeypatch):
+        org = MagicMock()
+        org.get_repos.return_value = []
+        gh = self._make_gh()
+        gh.get_organization.return_value = org
+
+        monkeypatch.setenv("ORGANIZATION", "my-org")
+        monkeypatch.setenv("DRY_RUN", "true")
+        monkeypatch.delenv("ISSUE_BODY_PATH", raising=False)
+
+        with patch("missing_license.missing_license.authenticate", return_value=gh):
+            main()
+
+        gh.get_organization.assert_called_once_with("my-org")
+        org.get_repos.assert_called_once()
+
+    def test_user_account_fallback_on_404(self, monkeypatch):
+        user_obj = MagicMock()
+        user_obj.get_repos.return_value = []
+        gh = self._make_gh(
+            org_side_effect=GithubException(404, {"message": "Not Found"}, None),
+            user_obj=user_obj,
+        )
+
+        monkeypatch.setenv("ORGANIZATION", "rwood-97")
+        monkeypatch.setenv("DRY_RUN", "true")
+        monkeypatch.delenv("ISSUE_BODY_PATH", raising=False)
+
+        with patch("missing_license.missing_license.authenticate", return_value=gh):
+            main()
+
+        user_obj.get_repos.assert_called_once()
+
+    def test_non_404_org_error_propagates(self, monkeypatch):
+        gh = self._make_gh(
+            org_side_effect=GithubException(500, {"message": "Server Error"}, None)
+        )
+
+        monkeypatch.setenv("ORGANIZATION", "my-org")
+        monkeypatch.setenv("DRY_RUN", "true")
+        monkeypatch.delenv("ISSUE_BODY_PATH", raising=False)
+
+        with patch("missing_license.missing_license.authenticate", return_value=gh):
+            try:
+                main()
+                assert False, "Expected GithubException to propagate"
+            except GithubException as e:
+                assert e.status == 500
 
 
 class TestIssueBodyLoading:

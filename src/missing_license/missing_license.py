@@ -82,7 +82,13 @@ def main():
         sys.exit(1)
 
     bot_login = gh.get_user().login
-    org = gh.get_organization(organization)
+    try:
+        org = gh.get_organization(organization)
+    except GithubException as e:
+        if e.status == 404:
+            org = gh.get_user(organization)
+        else:
+            raise
 
     results = {
         "archived": [],
