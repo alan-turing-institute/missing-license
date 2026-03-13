@@ -1,0 +1,15 @@
+# Changes here will be overwritten by Copier
+_commit: v0.2.0
+_src_path: gh:alan-turing-institute/python-project-template
+coc: our_coc
+email: rwood@turing.ac.uk
+full_name: Rosie Wood
+license: MIT
+min_python_version: '3.11'
+org: alan-turing-institute
+project_name: missing-license
+project_short_description: A GitHub Action that scans an organisation for public repositories
+    without a license and opens issues to notify owners
+python_name: missing_license
+typing: no_typing
+url: https://github.com/alan-turing-institute/missing-license

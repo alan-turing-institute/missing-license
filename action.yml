@@ -1,0 +1,55 @@
+name: 'Missing License'
+description: 'Scans an organisation for public repositories without a license and opens issues to notify owners'
+author: 'rwood-97'
+
+inputs:
+  gh_token:
+    description: 'GitHub token or PAT with repo and issues write access'
+    required: false
+  app_id:
+    description: 'GitHub App ID (alternative to gh_token)'
+    required: false
+  app_private_key:
+    description: 'GitHub App private key PEM (alternative to gh_token)'
+    required: false
+  app_installation_id:
+    description: 'GitHub App installation ID'
+    required: false
+  organization:
+    description: 'GitHub organisation to scan'
+    required: true
+  issue_title:
+    description: 'Title for issues opened on unlicensed repositories'
+    required: false
+    default: 'Adding a licence to your repository'
+  issue_body_path:
+    description: 'Path to a markdown file used as the issue body. Supports {repo_name} placeholder.'
+    required: false
+    default: 'issue_body.md'
+  issue_labels:
+    description: 'Comma-separated labels to apply to opened issues'
+    required: false
+    default: 'missing-license'
+  exempt_repos:
+    description: 'Comma-separated list of repository names to skip'
+    required: false
+    default: ''
+  dry_run:
+    description: 'If true, log findings but do not open issues'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    GH_TOKEN: ${{ inputs.gh_token }}
+    APP_ID: ${{ inputs.app_id }}
+    APP_PRIVATE_KEY: ${{ inputs.app_private_key }}
+    APP_INSTALLATION_ID: ${{ inputs.app_installation_id }}
+    ORGANIZATION: ${{ inputs.organization }}
+    ISSUE_TITLE: ${{ inputs.issue_title }}
+    ISSUE_BODY_PATH: ${{ inputs.issue_body_path }}
+    ISSUE_LABELS: ${{ inputs.issue_labels }}
+    EXEMPT_REPOS: ${{ inputs.exempt_repos }}
+    DRY_RUN: ${{ inputs.dry_run }}
