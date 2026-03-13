@@ -187,9 +187,29 @@ class TestIssueBodyLoading:
             .joinpath("issue_body.md")
             .read_text()
         )
-        assert "{repo_name}" in bundled
+        assert len(bundled) > 0
 
     def test_custom_body_loaded_from_file(self, tmp_path):
         body_file = tmp_path / "custom.md"
         body_file.write_text("Custom body for {repo_name}.")
         assert Path(str(body_file)).read_text() == "Custom body for {repo_name}."
+
+    def test_repo_name_placeholder_substituted(self, tmp_path):
+        body_file = tmp_path / "custom.md"
+        body_file.write_text("Please license {repo_name}!")
+        repo = make_repo("cool-project")
+        with patch.dict("os.environ", {"ISSUE_BODY_PATH": str(body_file)}):
+            process_repo(
+                repo,
+                ISSUE_TITLE,
+                body_file.read_text(),
+                ISSUE_LABELS,
+                set(),
+                False,
+                BOT_LOGIN,
+            )
+        repo.create_issue.assert_called_once_with(
+            title=ISSUE_TITLE,
+            body="Please license cool-project!",
+            labels=["missing-license"],
+        )

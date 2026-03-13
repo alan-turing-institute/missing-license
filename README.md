@@ -36,7 +36,7 @@ jobs:
 | `app_installation_id` | Yes* | — | GitHub App installation ID |
 | `organization` | Yes | — | GitHub organisation to scan |
 | `issue_title` | No | `Adding a license to your repository` | Title for issues opened on unlicensed repos |
-| `issue_body_path` | No | `issue_body.md` | Path to a markdown file used as the issue body. Supports `{repo_name}` placeholder |
+| `issue_body_path` | No | bundled template | Path to a markdown file used as the issue body. Supports `{repo_name}` placeholder |
 | `issue_labels` | No | `missing-license` | Comma-separated labels to apply to opened issues |
 | `exempt_repos` | No | — | Comma-separated list of repository names to skip |
 | `dry_run` | No | `false` | If `true`, log findings but do not open issues |
@@ -65,7 +65,7 @@ with:
 
 ### Custom issue body
 
-By default the action uses the bundled `issue_body.md`. To use your own template, add a markdown file to your repo and pass its path:
+By default the action uses the `issue_body.md` found at `src/missing_license/issue_body.md`. To use your own template, add a markdown file to your repo and pass its path:
 
 ```yaml
 with:
@@ -89,3 +89,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on how to contribute.
 ## License
 
 Distributed under the terms of the [MIT license](LICENSE).
+
+## Disclaimer
+
+This action has been developed with Claude code.
