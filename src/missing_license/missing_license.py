@@ -1,3 +1,4 @@
+import importlib.resources
 import os
 import sys
 
@@ -61,9 +62,16 @@ def main():
 
     organization = os.environ.get("ORGANIZATION", "")
     issue_title = os.environ.get("ISSUE_TITLE", "TODO")
-    issue_body_path = os.environ.get("ISSUE_BODY_PATH", "issue_body.md")
-    with open(issue_body_path) as f:
-        issue_body = f.read()
+    issue_body_path = os.environ.get("ISSUE_BODY_PATH", "")
+    if issue_body_path:
+        with open(issue_body_path) as f:
+            issue_body = f.read()
+    else:
+        issue_body = (
+            importlib.resources.files("missing_license")
+            .joinpath("issue_body.md")
+            .read_text()
+        )
     issue_labels = os.environ.get("ISSUE_LABELS", "missing-license")
     dry_run = os.environ.get("DRY_RUN", "false").lower() == "true"
     exempt_repos_str = os.environ.get("EXEMPT_REPOS", "")

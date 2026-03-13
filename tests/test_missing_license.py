@@ -1,3 +1,6 @@
+import importlib.resources
+from pathlib import Path
+
 from missing_license.missing_license import (
     get_license,
     has_existing_issue,
@@ -105,3 +108,19 @@ class TestProcessRepo:
     def test_archived_takes_priority_over_exempt(self):
         repo = make_repo("my-repo", archived=True)
         assert self._run(repo, exempt_repos={"my-repo"}) == "archived"
+
+
+class TestIssueBodyLoading:
+    def test_bundled_body_loaded_when_no_path_set(self, monkeypatch):
+        monkeypatch.delenv("ISSUE_BODY_PATH", raising=False)
+        bundled = (
+            importlib.resources.files("missing_license")
+            .joinpath("issue_body.md")
+            .read_text()
+        )
+        assert "{repo_name}" in bundled
+
+    def test_custom_body_loaded_from_file(self, tmp_path):
+        body_file = tmp_path / "custom.md"
+        body_file.write_text("Custom body for {repo_name}.")
+        assert Path(str(body_file)).read_text() == "Custom body for {repo_name}."
