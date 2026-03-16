@@ -40,6 +40,9 @@ def process_repo(
     if repo.archived:
         return "archived"
 
+    if repo.fork:
+        return "forked"
+
     if repo.name in exempt_repos:
         return "exempt"
 
@@ -92,6 +95,7 @@ def main():
 
     results = {
         "archived": [],
+        "forked": [],
         "exempt": [],
         "licensed": [],
         "already_notified": [],
@@ -119,6 +123,7 @@ def main():
     print(f"| Already notified | {len(results['already_notified'])} |")
     print(f"| Licensed | {len(results['licensed'])} |")
     print(f"| Archived (skipped) | {len(results['archived'])} |")
+    print(f"| Forked (skipped) | {len(results['forked'])} |")
     print(f"| Exempt (skipped) | {len(results['exempt'])} |")
 
     if results["issue_opened"]:
