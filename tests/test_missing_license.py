@@ -78,6 +78,14 @@ class TestProcessRepo:
         repo = make_repo("my-repo", archived=True)
         assert self._run(repo) == "archived"
 
+    def test_forked_repo_skipped(self):
+        repo = make_repo("my-repo", fork=True)
+        assert self._run(repo) == "forked"
+
+    def test_archived_takes_priority_over_forked(self):
+        repo = make_repo("my-repo", archived=True, fork=True)
+        assert self._run(repo) == "archived"
+
     def test_exempt_repo_skipped(self):
         repo = make_repo("my-repo")
         assert self._run(repo, exempt_repos={"my-repo"}) == "exempt"

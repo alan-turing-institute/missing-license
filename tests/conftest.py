@@ -13,6 +13,7 @@ def make_issue(title, state="open"):
 def make_repo(
     name,
     archived=False,
+    fork=False,
     has_license_api=False,
     license_files=None,
     issues=None,
@@ -21,6 +22,7 @@ def make_repo(
     repo = MagicMock()
     repo.name = name
     repo.archived = archived
+    repo.fork = fork
     repo.license = MagicMock() if has_license_api else None
 
     license_files = license_files or []
