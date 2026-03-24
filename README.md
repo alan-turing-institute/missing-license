@@ -37,7 +37,6 @@ jobs:
 | `organization` | Yes | — | GitHub organisation to scan |
 | `issue_title` | No | `Adding a license to your repository` | Title for issues opened on unlicensed repos |
 | `issue_body_path` | No | bundled template | Path to a markdown file used as the issue body. Supports `{repo_name}` placeholder |
-| `issue_labels` | No | `missing-license` | Comma-separated labels to apply to opened issues |
 | `exempt_repos` | No | — | Comma-separated list of repository names to skip |
 | `dry_run` | No | `false` | If `true`, log findings but do not open issues |
 
@@ -90,6 +89,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on how to contribute.
 
 Distributed under the terms of the [MIT license](LICENSE).
 
-## Disclaimer
+## Disclaimer
 
 This action has been developed with Claude code.

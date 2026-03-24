@@ -26,10 +26,6 @@ inputs:
     description: 'Path to a markdown file used as the issue body. Supports {repo_name} placeholder.'
     required: false
     default: ''
-  issue_labels:
-    description: 'Comma-separated labels to apply to opened issues'
-    required: false
-    default: 'missing-license'
   exempt_repos:
     description: 'Comma-separated list of repository names to skip'
     required: false
@@ -50,6 +46,5 @@ runs:
     ORGANIZATION: ${{ inputs.organization }}
     ISSUE_TITLE: ${{ inputs.issue_title }}
     ISSUE_BODY_PATH: ${{ inputs.issue_body_path }}
-    ISSUE_LABELS: ${{ inputs.issue_labels }}
     EXEMPT_REPOS: ${{ inputs.exempt_repos }}
     DRY_RUN: ${{ inputs.dry_run }}

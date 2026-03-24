@@ -6,6 +6,8 @@ from github import GithubException
 
 from missing_license.auth import authenticate
 
+ISSUE_LABEL = "missing-license"
+
 
 def get_license(repo):
     """Return True if the repo has a license (via API or file)."""
@@ -22,20 +24,17 @@ def get_license(repo):
     return False
 
 
-def has_existing_issue(repo, issue_title, bot_login):
-    """Return True if any issue (open or closed) with the given title exists."""
+def has_existing_issue(repo):
+    """Return True if any open or closed issue with the missing-license label exists."""
     try:
-        for issue in repo.get_issues(state="all", creator=bot_login):
-            if issue.title == issue_title:
-                return True
+        for _ in repo.get_issues(state="all", labels=[ISSUE_LABEL]):
+            return True
     except GithubException:
         pass
     return False
 
 
-def process_repo(
-    repo, issue_title, issue_body, issue_labels, exempt_repos, dry_run, bot_login
-):
+def process_repo(repo, issue_title, issue_body, exempt_repos, dry_run):
     """Process a single repo. Returns a status string."""
     if repo.archived:
         return "archived"
@@ -49,13 +48,12 @@ def process_repo(
     if get_license(repo):
         return "licensed"
 
-    if has_existing_issue(repo, issue_title, bot_login):
+    if has_existing_issue(repo):
         return "already_notified"
 
     if not dry_run:
-        labels = [label.strip() for label in issue_labels.split(",") if label.strip()]
         body = issue_body.replace("{repo_name}", repo.name)
-        repo.create_issue(title=issue_title, body=body, labels=labels)
+        repo.create_issue(title=issue_title, body=body, labels=[ISSUE_LABEL])
 
     return "dry_run" if dry_run else "issue_opened"
 
@@ -64,7 +62,7 @@ def main():
     gh = authenticate()
 
     organization = os.environ.get("ORGANIZATION", "")
-    issue_title = os.environ.get("ISSUE_TITLE", "TODO")
+    issue_title = os.environ.get("ISSUE_TITLE", "Missing license")
     issue_body_path = os.environ.get("ISSUE_BODY_PATH", "")
     if issue_body_path:
         with open(issue_body_path) as f:
@@ -75,7 +73,6 @@ def main():
             .joinpath("issue_body.md")
             .read_text()
         )
-    issue_labels = os.environ.get("ISSUE_LABELS", "missing-license")
     dry_run = os.environ.get("DRY_RUN", "false").lower() == "true"
     exempt_repos_str = os.environ.get("EXEMPT_REPOS", "")
     exempt_repos = {r.strip() for r in exempt_repos_str.split(",") if r.strip()}
@@ -84,7 +81,6 @@ def main():
         print("ERROR: ORGANIZATION environment variable is required")
         sys.exit(1)
 
-    bot_login = gh.get_user().login
     try:
         org = gh.get_organization(organization)
     except GithubException as e:
@@ -108,10 +104,8 @@ def main():
             repo,
             issue_title,
             issue_body,
-            issue_labels,
             exempt_repos,
             dry_run,
-            bot_login,
         )
         results[status].append(repo.name)
 

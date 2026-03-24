@@ -15,8 +15,6 @@ from tests.conftest import make_issue, make_repo
 
 ISSUE_TITLE = "This repository has no license"
 ISSUE_BODY = "Please add a license to {repo_name}."
-ISSUE_LABELS = "missing-license"
-BOT_LOGIN = "test-bot"
 
 
 class TestGetLicense:
@@ -45,21 +43,16 @@ class TestHasExistingIssue:
     def test_open_issue_exists(self):
         issue = make_issue(ISSUE_TITLE, state="open")
         repo = make_repo("my-repo", issues=[issue])
-        assert has_existing_issue(repo, ISSUE_TITLE, BOT_LOGIN) is True
+        assert has_existing_issue(repo) is True
 
     def test_closed_issue_exists(self):
         issue = make_issue(ISSUE_TITLE, state="closed")
         repo = make_repo("my-repo", issues=[issue])
-        assert has_existing_issue(repo, ISSUE_TITLE, BOT_LOGIN) is True
+        assert has_existing_issue(repo) is True
 
     def test_no_issue_exists(self):
         repo = make_repo("my-repo", issues=[])
-        assert has_existing_issue(repo, ISSUE_TITLE, BOT_LOGIN) is False
-
-    def test_different_title_not_matched(self):
-        issue = make_issue("Some other issue")
-        repo = make_repo("my-repo", issues=[issue])
-        assert has_existing_issue(repo, ISSUE_TITLE, BOT_LOGIN) is False
+        assert has_existing_issue(repo) is False
 
 
 class TestProcessRepo:
@@ -68,10 +61,8 @@ class TestProcessRepo:
             repo,
             ISSUE_TITLE,
             ISSUE_BODY,
-            ISSUE_LABELS,
             exempt_repos or set(),
             dry_run,
-            BOT_LOGIN,
         )
 
     def test_archived_repo_skipped(self):
@@ -126,15 +117,10 @@ class TestProcessRepo:
 class TestMainOrgUserFallback:
     def _make_gh(self, org_side_effect=None, user_obj=None):
         gh = MagicMock()
-        gh.get_user.return_value.login = "test-bot"
         if org_side_effect is not None:
             gh.get_organization.side_effect = org_side_effect
         if user_obj is not None:
-            # get_user is called twice: once for bot login (no args),
-            # once for org fallback
-            gh.get_user.side_effect = lambda login=None: (
-                MagicMock(login="test-bot") if login is None else user_obj
-            )
+            gh.get_user.side_effect = lambda *_, **__: user_obj
         return gh
 
     def test_org_account_used_when_found(self, monkeypatch):
@@ -206,16 +192,13 @@ class TestIssueBodyLoading:
         body_file = tmp_path / "custom.md"
         body_file.write_text("Please license {repo_name}!")
         repo = make_repo("cool-project")
-        with patch.dict("os.environ", {"ISSUE_BODY_PATH": str(body_file)}):
-            process_repo(
-                repo,
-                ISSUE_TITLE,
-                body_file.read_text(),
-                ISSUE_LABELS,
-                set(),
-                False,
-                BOT_LOGIN,
-            )
+        process_repo(
+            repo,
+            ISSUE_TITLE,
+            body_file.read_text(),
+            set(),
+            False,
+        )
         repo.create_issue.assert_called_once_with(
             title=ISSUE_TITLE,
             body="Please license cool-project!",
