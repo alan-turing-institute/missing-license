@@ -6,8 +6,6 @@ from github import GithubException
 
 from missing_license.auth import authenticate
 
-ISSUE_LABEL = "missing-license"
-
 
 def get_license(repo):
     """Return True if the repo has a license (via API or file)."""
@@ -24,11 +22,12 @@ def get_license(repo):
     return False
 
 
-def has_existing_issue(repo):
-    """Return True if any open or closed issue with the missing-license label exists."""
+def has_existing_issue(repo, issue_title):
+    """Return True if any open or closed issue with the given title exists."""
     try:
-        for _ in repo.get_issues(state="all", labels=[ISSUE_LABEL]):
-            return True
+        for issue in repo.get_issues(state="all"):
+            if issue.title == issue_title:
+                return True
     except GithubException:
         pass
     return False
@@ -48,12 +47,12 @@ def process_repo(repo, issue_title, issue_body, exempt_repos, dry_run):
     if get_license(repo):
         return "licensed"
 
-    if has_existing_issue(repo):
+    if has_existing_issue(repo, issue_title):
         return "already_notified"
 
     if not dry_run:
         body = issue_body.replace("{repo_name}", repo.name)
-        repo.create_issue(title=issue_title, body=body, labels=[ISSUE_LABEL])
+        repo.create_issue(title=issue_title, body=body)
 
     return "dry_run" if dry_run else "issue_opened"
 

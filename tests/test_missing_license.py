@@ -43,16 +43,21 @@ class TestHasExistingIssue:
     def test_open_issue_exists(self):
         issue = make_issue(ISSUE_TITLE, state="open")
         repo = make_repo("my-repo", issues=[issue])
-        assert has_existing_issue(repo) is True
+        assert has_existing_issue(repo, ISSUE_TITLE) is True
 
     def test_closed_issue_exists(self):
         issue = make_issue(ISSUE_TITLE, state="closed")
         repo = make_repo("my-repo", issues=[issue])
-        assert has_existing_issue(repo) is True
+        assert has_existing_issue(repo, ISSUE_TITLE) is True
 
     def test_no_issue_exists(self):
         repo = make_repo("my-repo", issues=[])
-        assert has_existing_issue(repo) is False
+        assert has_existing_issue(repo, ISSUE_TITLE) is False
+
+    def test_different_title_not_matched(self):
+        issue = make_issue("Some other issue")
+        repo = make_repo("my-repo", issues=[issue])
+        assert has_existing_issue(repo, ISSUE_TITLE) is False
 
 
 class TestProcessRepo:
@@ -101,7 +106,6 @@ class TestProcessRepo:
         repo.create_issue.assert_called_once_with(
             title=ISSUE_TITLE,
             body=ISSUE_BODY.replace("{repo_name}", "my-repo"),
-            labels=["missing-license"],
         )
 
     def test_dry_run_does_not_open_issue(self):
@@ -202,5 +206,4 @@ class TestIssueBodyLoading:
         repo.create_issue.assert_called_once_with(
             title=ISSUE_TITLE,
             body="Please license cool-project!",
-            labels=["missing-license"],
         )
